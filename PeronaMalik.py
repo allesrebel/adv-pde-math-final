@@ -29,18 +29,17 @@ def aniso_diff_channel(channel, iter, l, k):
     s_ker = np.array([[0, 1, 0], [0, -1, 0], [0, 0, 0]], dtype=np.float32)
 
     for i in range(iter):
-        n_diff = convolve2d(tmp, n_ker, mode='same', boundary='symm')
-        e_diff = convolve2d(tmp, e_ker, mode='same', boundary='symm')
-        s_diff = convolve2d(tmp, s_ker, mode='same', boundary='symm')
-        w_diff = convolve2d(tmp, w_ker, mode='same', boundary='symm')
+        n_diff = cv2.filter2D(tmp, -1, n_ker, borderType=cv2.BORDER_REFLECT)
+        e_diff = cv2.filter2D(tmp, -1, e_ker, borderType=cv2.BORDER_REFLECT)
+        s_diff = cv2.filter2D(tmp, -1, s_ker, borderType=cv2.BORDER_REFLECT)
+        w_diff = cv2.filter2D(tmp, -1, w_ker, borderType=cv2.BORDER_REFLECT)
 
         c_n = g(n_diff, k)
         c_e = g(e_diff, k)
         c_s = g(s_diff, k)
         c_w = g(w_diff, k)
         
-        
-        # Ensure tmp remains float32 throughout all operations
+        # Update tmp with the diffusion calculated using the conductance terms
         tmp = tmp + l * (c_n * n_diff + c_e * e_diff + c_s * s_diff + c_w * w_diff)
 
     # Convert the float32 image back to uint8 for proper image format
@@ -64,9 +63,9 @@ if __name__ == '__main__':
     print(image.shape)
 
     # Parameters
-    nIterations = 10  # Number of iterations
-    LAMBDA = 0.25   # Lambda, the integration constant
-    k = 15     # K, edge threshold parameter
+    nIterations = 10 # Number of iterations
+    LAMBDA = 0.25 # Lambda, needs to be between 0 -> 1/4
+    k = 15 # K, edge threshold parameter
 
     # Perform anisotropic diffusion on color image
     processed_image = aniso_diff_color(image, nIterations, LAMBDA, k)
