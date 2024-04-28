@@ -2,9 +2,8 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
-from scipy.signal import convolve2d
 
-# Implementation of the Perona-Malik paper's
+# Implementation of the Perona-Malik paper -
 # Anisotropic Diffusion!
 
 def apply_canny_edge_detector(image, low_threshold=50, high_threshold=150):
@@ -63,7 +62,7 @@ if __name__ == '__main__':
     print(image.shape)
 
     # Parameters
-    nIterations = 10 # Number of iterations
+    nIterations = 50 # Number of iterations
     LAMBDA = 0.25 # Lambda, needs to be between 0 -> 1/4
     k = 15 # K, edge threshold parameter
 
@@ -74,25 +73,21 @@ if __name__ == '__main__':
     #processed_image_check = cv2.ximgproc.anisotropicDiffusion(np.copy(image), LAMBDA, K, nIterations)
 
     # Plot the original and processed images
-    fig = plt.figure(figsize=(10, 10))
-    fig.add_subplot(221)
-    plt.title('Original')
-    plt.imshow(image, cmap='gray')
-    fig.add_subplot(222)
-    plt.title(f'After {nIterations} Iterations')
-    plt.imshow(processed_image, cmap='gray')
+    fig, axs = plt.subplots(2, 2, figsize=(10, 10))
+    axs[0, 0].set_title('Original')
+    axs[0, 0].imshow(image, cmap='gray')
+    axs[0, 1].set_title(f'After {nIterations} Iterations')
+    axs[0, 1].imshow(processed_image, cmap='gray')
 
-    # Apply Harris corner detection to both images
+    # Apply Canny (edge) detection to both images
     image_with_edges = apply_canny_edge_detector(np.copy(image))
     processed_with_edges = apply_canny_edge_detector(np.copy(processed_image))
 
-    # Plot images with Harris corners
-    fig.add_subplot(223)
-    plt.title('Original with Harris Corners')
-    plt.imshow(image_with_edges, cmap='gray')
-    fig.add_subplot(224)
-    plt.title('Processed with Harris Corners')
-    plt.imshow(processed_with_edges, cmap='gray')
+    # Plot images with Canny
+    axs[1, 0].set_title('Original with Canny')
+    axs[1, 0].imshow(image_with_edges, cmap='gray')
+    axs[1, 1].set_title('Processed with Canny')
+    axs[1, 1].imshow(processed_with_edges, cmap='gray')
 
+    plt.tight_layout()
     plt.show()
-
