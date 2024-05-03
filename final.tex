@@ -1,0 +1,85 @@
+\documentclass{article}
+\usepackage{forest}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{hyperref}
+
+\UseRawInputEncoding
+
+\lstset{
+	language=Python,
+	basicstyle=\ttfamily,
+	breaklines=true,                % Enable line breaking
+	breakatwhitespace=false,        % Line breaks at any character
+}
+
+\title{Final Summary: Anisotropic Diffusion - The Perona Malik PDE Applied}
+
+\author{
+	Alles Rebel \\
+	MATH 693B Adv Computational PDE \\
+	Professor Nguyen-Truc-Dao Nguyen
+}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+Computer vision is full of applications where edges are critical to allowing computers to make meanings of the world. One such application is Simulatous Localization and Mapping (SLAM), where machines take a series of 2d images captured from sensors, and derive the location of itself and it's surroundings. It's no surpise that this is at the heart of autonomous systems and AR/VR applications - these applications require either visually comphrending walls and their relative locations to them or simply to avoid obstacles.
+
+\section*{Background}
+Most SLAM algorithms utilize a pipeline to extract features (think perspective invariant portions, or corners) of images, create discriptors of them, and match them across various images as time iterates. There are many ways to generate a descriptors, for now, just consider a desciptor as a method to descibe the feature itself by it's local spacial information. From the matching of these feature descriptors, and a relative sensor such as an accelerometer, trajectories can be made! In a similar manner to how a Kalman filter operates, the absolute sensor (the camera) is made more accurate by the relative acceleration measurements provided by the accelerometer. 
+
+Edges further enhance this - reducing the overall error magnitude as time progresses. Edges are generated in the current image, and then a descriptor is generated along the edge. Rather than just at the feature point, an edge descriptor considers the area around the entire edge. Then in future images, the same matching procedure is followed for any edges in that image. Edges can be linked together, supporting generation of bounding boxes, or even predicting occlusion. 
+
+\subsection*{How to detect edges}
+Detecting edges is one of the most well studied computer vision problems in literature. In general, edges occur for many different reasons - such as intensity variation, depth differences, texture changes, etc. The simplest approach to detect edges is a gradient, or a first order dervative in the spacial directions image. As we've discussed in class, anytime we see a derivative, we can apply a partial difference scheme! Here, we can take the forward difference operator to get an equation for the next pixel value. This turns out to be implemented in one of the most basic computer vision operations: 2d convolution filtering. Where the kernel is simply the finite different scheme. Say we want the derative in both directions? It turns out to be as simple as multiplying the kernels together because convolution of filters is assiolatve and communiative. 
+
+However, using the first derivate has some issues. First it is highly sensitive to noise. Every image captured by a sensor is inherently noisy, due to various reasons including thermal noise, degradation, etc. All of these noise sources are amplified with the first derivate (any intensity change that isn't smooth).
+
+And regardless, our goal is to detect the edges themselves - meaning when there's a rapid change in intensities. This means we'll have to take the second gradient or second derivative in all spacial directions. This is so common that it has a name: the lapalician. With our knowledge of finite difference schemes, we can easily do a first order central difference implementation for the second derivative! Consider the X direction, we get the following finite difference scheme:
+
+To convert this into a convolution kernel is straight forward:
+
+Which is an extremely familiar kernel to most computer vision students. And this extends to second order or even different schemes - just a modification of the kernel size is needed, and perhaps an adjustment to the boundary conditions. Note: yes there are boundary conditions - what do you do about kernels at the edge? Something that was glossed over during computer vision courses.
+\section*{Anisotropic Diffusion / Perona Malik}
+Hopefully now you see the value of the edge, and how to detect it. What happens if it's hard, say too many edges near each other, or a failure to follow a curve due to the gradient changing throughout the edge. Is there a way to perserve the edge while getting rid of the information we don't think is the edge? This is exactly what Perona and Malik were seeking - applying diffusion ability of the the heat equation to the intensities of an image's pixel values. However, not only this - but devising a way to make the heat equation only apply to areas not deemed edges. The end result of such a method would smooth out the portions not near an edge, while keeping the edge - also known as anisotropic diffusion.
+
+\subsection*{The PDE}
+
+\subsection*{The Finite Difference Scheme}
+Parona and Malik proposed a finite difference scheme for their equation, it's the following:
+
+And performed stability analysis to arrive at the following:
+
+
+\subsection*{Intuition of Edge Preservation}
+The intuition of the edge preservation feature of their finite difference scheme comes from the following observations:
+\begin{itemize}
+	\item A correction term is added to the previous value of the pixel
+	\item The correction term includes the diffusion equation and a correction coefficient
+	\item The Correlation coefficient is an exponential taken to the negative power of the Laplacian
+	\item Edges always have large Laplacian values
+	\item The correction term's coefficient tends towards zero but never reaches it
+	\item Edges will be impacted very little by the diffusion process due to it's impacts on the correction term.
+\end{itemize}
+
+In other words, the selection of the correction term was an important consideration by the authors. Other equations for the term were considered but the authors found this particular term to be applicable across the images they tested this method with.
+
+\section*{Example Results}
+
+\section*{Conclusion}
+Convolution Kernels is something almost every computer science student will come across in their career and coursework. But the mathematical understanding is always an after thought. I've used these kernels many times without knowing that they were actually a implementation of a finite difference scheme! All with the same stability constraints of any other finite difference scheme.
+
+\section*{Appendix}
+All code written in python3.10, using matplot lib:
+\subsection*{Reference Python Implementation} \label{code1.3.1}
+\lstinputlisting[language=Python]{PeronaMalik.py}
+\end{document}
